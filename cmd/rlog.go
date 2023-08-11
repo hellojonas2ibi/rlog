@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -10,8 +12,25 @@ import (
 )
 
 func main() {
-	logDir := "logs"
-	logger := rlog.New(logDir, 10, time.Duration(10)*time.Second)
+	logDir := os.Getenv("RLOG_DIR")
+	intervalStr := os.Getenv("RLOG_INTERVAL")
+	bufferSizeStr := os.Getenv("RLOG_BUFFER_SIZE")
+
+	if logDir == "" {
+		logDir = os.Getenv("$HOME/.rlog/logs")
+	}
+
+	interval, err := strconv.Atoi(intervalStr)
+	if err != nil {
+		interval = 10
+	}
+
+	bufferSize, err := strconv.Atoi(bufferSizeStr)
+	if err != nil {
+		bufferSize = 20
+	}
+
+	logger := rlog.New(logDir, bufferSize, time.Duration(interval)*time.Second)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
